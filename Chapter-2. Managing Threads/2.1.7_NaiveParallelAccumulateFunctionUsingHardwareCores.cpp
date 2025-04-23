@@ -3,22 +3,27 @@
 #include <numeric>
 #include <thread>
 #include <iostream>
-
+#include <type_traits>
 
 // We can decide the number of threads in run time in function of the number of cores in the system with std::thread::hardware_concurrency()
 // With that we can create a truly parallel algorithm
 
 template<typename Iterator, typename T>
 struct accumulate_block {
+  static_assert(std::is_default_constructible_v<T>, "T MUST be default constructible"); // Also T must be default constructible
   void operator()(Iterator first, Iterator last, T &result) {
     result = std::accumulate(first,last,result);
   }
 };
 // In a parallel algorithm you never want more threads than the hardware can support. 
 // This is called oversubscription and will decrece performance, due to the context switching cost.
+// This naive algorithm will work perfect with int. With doubles and floats where addition is not associative, the results can vary a bit from std::accumulate
+// This is due to how blocks are splited.
+
 template<typename Iterator,typename T>
 T parallel_accumulate(Iterator first, Iterator last, T & init) {
-  unsigned long const length = std::distance(first,last);
+  static_assert(std::is_default_constructible_v<T>, "T MUST be default constructible"); // Also T must be default constructible
+  unsigned long const length = std::distance(first,last); // distance between iterator classes
   if (!length) {
     return init;
   }
@@ -35,7 +40,7 @@ T parallel_accumulate(Iterator first, Iterator last, T & init) {
   
   for (unsigned long i = 0; i < (num_threads -1);++i) {
     Iterator block_end = block_start;
-    std::advance(block_end,block_size);
+    std::advance(block_end,block_size); // move iterato class forward, advance as the name says
     threads[i] = std::thread(accumulate_block<Iterator,T>(),
     block_start,block_end,std::ref(results[i]));
     block_start = block_end;
