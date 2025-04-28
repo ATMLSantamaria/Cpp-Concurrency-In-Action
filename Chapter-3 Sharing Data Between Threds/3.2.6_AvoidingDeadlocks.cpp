@@ -20,8 +20,8 @@
 
 #include <mutex>
 
-// User define mutex must implem emtn lock, unlock and try_lock. here just a dumb interaface
-class hierarchical_mutex : std::mutex {
+// User define mutex must implement lock, unlock and try_lock. here just a dumb implementation
+class hierarchical_mutex {
   public:
   int level;
   hierarchical_mutex(int l) : level(l){}

@@ -73,3 +73,5 @@ class X {
   
   };
 
+  // OVERALL -< RULE FOR Avoiding Deadlocks. dont wait for another thread if there is a chance that it is waiting for you
+
