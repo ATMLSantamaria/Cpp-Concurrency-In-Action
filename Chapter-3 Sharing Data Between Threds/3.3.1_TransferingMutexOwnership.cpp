@@ -11,7 +11,8 @@ void prepare_data(){}
 // this function locks a mutex, prepare some data and then return the lock to the caller
 std::unique_lock<std::mutex> get_lock() {
   extern std::mutex some_mutex;
-  std::unique_lock<std::mutex> lk(some_mutex);
+  std::unique_lock<std::mutex> lk(some_mutex); // since lk is declare within the function we dont need to call std::move
+  // the compiler do it for us
   prepare_data();
   return lk;
 }
