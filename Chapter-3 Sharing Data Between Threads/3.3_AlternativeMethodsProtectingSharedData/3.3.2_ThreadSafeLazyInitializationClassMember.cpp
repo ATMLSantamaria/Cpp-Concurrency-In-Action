@@ -57,3 +57,4 @@ public:
 // call_conce require this pointer to be passed
 
 // NOTA: instances of std::once_flag cannot be copied or moved.
+
