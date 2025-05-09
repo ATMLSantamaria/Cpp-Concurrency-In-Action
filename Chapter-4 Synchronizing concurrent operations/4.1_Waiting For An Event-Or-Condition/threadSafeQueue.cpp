@@ -43,6 +43,7 @@ threadsafe_queue<T>::threadsafe_queue(threadsafe_queue && other)
                              // with the initialization list with lambda we assure that the object is build directly
                              // with the moved value
 
+// push
 template<typename T>
 void threadsafe_queue<T>::push(T new_value){
   std::lock_guard<std::mutex> lk(mut); // lock
@@ -50,12 +51,24 @@ void threadsafe_queue<T>::push(T new_value){
   data_cond.notify_one();              // notify a new element is there
 }
 
+// wait and pop void return
 template<typename T>
 void threadsafe_queue<T>::wait_and_pop(T& value) {
   std::unique_lock<std::mutex> un_lk(mut);                          // need a unique lock to work with the wait
   data_cond.wait(un_lk,[this](){return !(this->data_queue.empty());}); // only awake if data_queue is not empty. Note you cannot capture member variables in lambdas, always capture this. later this could be omited
   value = data_queue.front();  // the caller of wait_and_pop(T& value) receive the element to be popped in value.
   data_queue.pop();            // do the actual pop
+}
+
+// wait and pop shared_ptr return
+template<typename T>
+std::shared_ptr<T> threadsafe_queue<T>::wait_and_pop(){
+  std::unique_lock<std::mutex> un_lk(mut);     // need unique lock for the wait
+  data_cond.wait(un_lk,[this]{return !(this->data_queue.empty());});  // capture this to be able to access and check the queue
+                                                                      // if queue is empty sleep again.
+  std::shared_ptr<T> ptr{std::make_shared<T>(data_queue.front())};    // take the element and point the shared pointer to it
+  data_queue.pop();                                                   // delete the element
+  return ptr;                                                         // return the element
 }
 
 
