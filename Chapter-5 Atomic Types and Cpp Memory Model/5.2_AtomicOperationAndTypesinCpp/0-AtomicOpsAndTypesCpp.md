@@ -93,9 +93,13 @@ Then they can be **queried and set** (check previous value and set the value to 
 with difference memory orders:
 ```cpp
 bool was_set = flag.test_and_set(std::memory_order_acquire); // was_set store the old value, and the flag is set to
-                                                            // true now
-flag.clear(); // reset it to false
+                                                            // set now
+flag.clear(); // reset it to clear (clear has some similarities with false, but it is not the same)
 ```
+The flag has 2 possible states: clear (the starting one) and set. They are not equivalent to true and false.
+clear() is a store operation
+test_and_set() is a read_modify_write operation
+
 Possible orderings are (we will go into more detail later):
 ```cpp
 std::memory_order_relaxed //-> dont impose any ordering but guarantee atomicity
@@ -177,21 +181,23 @@ As we wrote before there are 6 memory orderings. That are different values of th
 
 Permited values for memory ordering depend on the operation category. The operations are divided into 3 categories:
 
-- **Store** operations can have:
-- - memory_order_relaxed
-- - memory_order_release
-- - memory_order_seq_cst
+- **Store (atomically write a value to an atomic variable)**. 
+  >Its ordering affects visibility of the write to other threads. Possible orderings:
+  >- memory_order_relaxed
+  >- memory_order_release
+  >- memory_order_seq_cst
 
-- **Load** operations can have:
-- - memory_order_relaxed
-- - memory_order_acquire
-- - memory_order_consume
-- - memory_order_seq_cst
+- **Load (atomically read a value from an atomic variable**
+  >Its ordering affects visibility of prior writes from other threads. Posible orderings:
+  >- memory_order_relaxed
+  >- memory_order_acquire
+  >- memory_order_consume
+  >- memory_order_seq_cst
 
 - **Read-modify-write** operations:
-- - memory_order_relaxed
-- - memory_order_acquire
-- - memory_order_consume
-- - memory_order_release
-- - memory_order_acq_rel
-- - memory_order_seq_cst
+  >- memory_order_relaxed
+  >- memory_order_acquire
+  >- memory_order_consume
+  >- memory_order_release
+  >- memory_order_acq_rel
+  >- memory_order_seq_cst
