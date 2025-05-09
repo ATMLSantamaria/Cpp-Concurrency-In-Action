@@ -13,7 +13,7 @@ private:
 
 
 public:
-  threadsafe_queue();
+  threadsafe_queue() = default;
   threadsafe_queue(const threadsafe_queue&);
   threadsafe_queue(threadsafe_queue&&);
 
@@ -26,6 +26,22 @@ public:
   void wait_and_pop(T& value);
   std::shared_ptr<T> wait_and_pop();
 };
+
+// copy constructor
+template<typename T>
+threadsafe_queue<T>::threadsafe_queue(const threadsafe_queue & other) {
+  std::lock_guard<std::mutex> lk(other.mutex); // lk other.mut
+  // you dont need to lock this.mut since this object is being constructed and it is not accesible by any other thread
+  data_queue = other.data_queue;
+}
+
+// move constructor. Imporant NOTE. NEVER ATTEMPT TO MOVE THE mutex or condition variable. It is forbidden by the standard
+template<typename T>
+threadsafe_queue<T>::threadsafe_queue(threadsafe_queue && other)
+          : data_queue([&](){std::lock_guard<std::mutex> lk(other.mut); // [&] capture all local variables in the enclosing scope by reference. So you can use other
+                             return std::move(other.data_queue);})  {}
+                             // with the initialization list with lambda we assure that the object is build directly
+                             // with the moved value
 
 template<typename T>
 void threadsafe_queue<T>::push(T new_value){
