@@ -7,7 +7,7 @@
 template<typename T>
 class threadsafe_queue {
 private:
-  std::mutex mut;
+  mutable std::mutex mut; // thread must be mutable, to be able to lock unlock it even in const objects
   std::queue<T> data_queue;
   std::condition_variable data_cond;
 
@@ -25,6 +25,8 @@ public:
 
   void wait_and_pop(T& value);
   std::shared_ptr<T> wait_and_pop();
+
+  bool empty() const;
 };
 
 // copy constructor
@@ -71,8 +73,36 @@ std::shared_ptr<T> threadsafe_queue<T>::wait_and_pop(){
   return ptr;                                                         // return the element
 }
 
+// bool try_pop
+template<typename T>
+bool threadsafe_queue<T>::try_pop(T & value) {
+  std::lock_guard<std::mutex> lk(mut); // normal lock is enough here
+  if (data_queue.empty()) {            // if data queue is empty we need to return false
+    return false;
+  }
+  value = data_queue.front();
+  data_queue.pop();
+  return true;
+}
 
+// shared_tr try_pop
+template<typename T>
+std::shared_ptr<T> threadsafe_queue<T>::try_pop(){
+  std::lock_guard<std::mutex> lk(mut);
+  if (data_queue.empty()) {
+    return std::shared_ptr<T>(); //create and return an empty shared ptr. In a empty shared_ptr get() receive a nullptr
+  }
+  std::shared_ptr<T> ptr{std::make_shared<T>(data_queue.front())};
+  data_queue.pop();
+  return ptr;
+}
 
+// empty
+template<typename T>
+bool threadsafe_queue<T>::empty() const {
+  std::lock_guard<T> lk(mut);
+  return data_queue.empty();
+}
 
 
 
