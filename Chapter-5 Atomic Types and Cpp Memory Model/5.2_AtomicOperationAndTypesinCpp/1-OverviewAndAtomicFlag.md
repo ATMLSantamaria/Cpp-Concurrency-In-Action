@@ -1,4 +1,4 @@
-# Operations on the different atomic types Overview
+# Operations on the Atomic Flag and Overview
 
 ## std::atomic_flag
 
@@ -37,7 +37,7 @@ public:
 };
 ```
 ## std::atomic\<bool\>
-Atomic<bool> is the most vasic of the atomic integral types.
+Atomic<bool> is the most basic of the atomic integral types.
 
 **Build from non atomic**
 ```cpp
@@ -76,3 +76,17 @@ If they are not equal, the expected value is updated with the value of the atomi
 The return type is a boolean, that is **true if the store was performed**. False otherwise.
 
 Basically if the values were equal, the store is done, and the operation succeded, so the return is true.
+
+**compare_exchange_weak()**
+The store might not be succesful even if original value was equal. Value is unchanged and the return is false.
+This happens if the machine lacks a *single compare-and-exchange instruction* and the processor cant guarantee that operation was done *atomically*
+The thread performing the operation may have switched out in the middle of the sequence of instructions and another thread scheduled in its place did something ( a OS where you have more threads than processors).
+
+This is called a *spurious failure*: reason of failure is a function of timing rather than value of the variables
+
+The typical way of using compare_exchange_weak is in a loop due to the possibility of failing spuriously.
+```cpp
+bool expected = false;
+extern atomic<bool> b;
+while(!b.compare_exchange_weak(expected,true) !! !expected);
+```
