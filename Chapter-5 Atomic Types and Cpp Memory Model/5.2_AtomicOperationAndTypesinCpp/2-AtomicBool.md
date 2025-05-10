@@ -23,7 +23,8 @@ Using *load* and we can speficy memory ordering
 bool res = b.load(std::memory_order_acquire);
 ```
 
-## read-and-modify
+## exchange() 
+Is an read-and modify
 Using *exchange*. *exchange* returns the original value and replace it with a new one
 ```cpp
 bool old_value = b.exchange(false,std::memory_order_acq_rel);
