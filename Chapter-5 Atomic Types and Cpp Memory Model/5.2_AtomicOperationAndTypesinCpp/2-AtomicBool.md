@@ -31,7 +31,7 @@ bool old_value = b.exchange(false,std::memory_order_acq_rel);
 ```
 
 ## Compare-exchange
-Store a new value (or not) depending on the current value.
+Store a new value (or not) depending on the current value and the desired one
 
 ### **compare-exchange operation** 
 Is very important. It compares the value of a variable with a supplied expected value.
